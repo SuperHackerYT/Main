@@ -130225,8 +130225,6 @@ end)
 )]]
 
 -- © 2026 Nameless Admin. All rights reserved. Do not copy, paste, redistribute, or claim as your own.
-
--- [ WINDUI MOD FOR NAMELESS ADMIN ] --
 task.spawn(function()
     task.wait(3)
     local allowOriginalGUI = false
@@ -130245,9 +130243,9 @@ task.spawn(function()
     WindUI:SetNotificationLower(true)
 
     local Window = WindUI:CreateWindow({
-        Title = "Nameless Admin (WindUI)",
+        Title = "Nameless Admin Panel",
         Icon = "shield",
-        Author = "Admin Panel",
+        Author = "WindUI Mod",
         Theme = "Dark",
         NewElements = false,
         IconsThemed = true,
@@ -130255,15 +130253,8 @@ task.spawn(function()
         Acrylic = false,
     })
 
-    Window:Tag({
-        Title = "Modded",
-        Icon = "github",
-        Color = Color3.fromHex("#5eccff"),
-        Radius = 7,
-    })
-
     Window:EditOpenButton({
-        Title = "Open Admin",
+        Title = "Open Panel",
         Icon = "shield",
         CornerRadius = UDim.new(0,16),
         StrokeThickness = 2,
@@ -130276,70 +130267,191 @@ task.spawn(function()
         Draggable = true,
     })
 
-    local MainTab = Window:Tab({
-        Title = "Executor",
-        Icon = "terminal",
+    local function exec(cmd)
+        local prefix = (NAStuff and NAStuff.prefixCheck) or ";"
+        pcall(function()
+            NAmanage.ExecuteBindings("OnChatted", game:GetService("Players").LocalPlayer, prefix .. cmd)
+        end)
+    end
+
+    -- [ PLAYER TAB ] --
+    local PlayerTab = Window:Tab({ Title = "Player", Icon = "user" })
+    
+    PlayerTab:Button({
+        Title = "Heal",
+        Desc = "Restores your health to maximum",
+        Callback = function() exec("heal") end
     })
 
-    MainTab:Input({
-        Title = "Execute Command",
-        Desc = "Type any Nameless Admin command and hit enter",
+    PlayerTab:Button({
+        Title = "God Mode",
+        Desc = "Makes your character invincible",
+        Callback = function() exec("god") end
+    })
+    
+    PlayerTab:Button({
+        Title = "Ungod Mode",
+        Desc = "Removes invincibility",
+        Callback = function() exec("ungod") end
+    })
+
+    PlayerTab:Slider({
+        Title = "WalkSpeed",
+        Desc = "Adjust your character's walk speed",
+        Step = 1,
+        Value = { Min = 16, Max = 500, Default = 16 },
+        Callback = function(val) exec("ws " .. tostring(val)) end
+    })
+
+    PlayerTab:Slider({
+        Title = "JumpPower",
+        Desc = "Adjust your character's jump power",
+        Step = 1,
+        Value = { Min = 50, Max = 500, Default = 50 },
+        Callback = function(val) exec("jp " .. tostring(val)) end
+    })
+
+    -- [ MOVEMENT TAB ] --
+    local MovementTab = Window:Tab({ Title = "Movement", Icon = "move" })
+
+    MovementTab:Toggle({
+        Title = "Fly",
+        Desc = "Toggle flight mode",
+        Icon = "plane",
+        Value = false,
+        Callback = function(state)
+            if state then exec("fly") else exec("unfly") end
+        end
+    })
+
+    MovementTab:Slider({
+        Title = "Fly Speed",
+        Desc = "Adjust flight speed",
+        Step = 1,
+        Value = { Min = 1, Max = 20, Default = 1 },
+        Callback = function(val) exec("flyspeed " .. tostring(val)) end
+    })
+
+    MovementTab:Toggle({
+        Title = "Noclip",
+        Desc = "Walk through walls",
+        Icon = "ghost",
+        Value = false,
+        Callback = function(state)
+            if state then exec("noclip") else exec("clip") end
+        end
+    })
+    
+    MovementTab:Button({
+        Title = "Infinite Jump",
+        Desc = "Jump in mid-air",
+        Callback = function() exec("infjump") end
+    })
+
+    -- [ TARGETS TAB ] --
+    local TargetsTab = Window:Tab({ Title = "Targets", Icon = "crosshair" })
+
+    local targetPlayer = ""
+    TargetsTab:Input({
+        Title = "Target Player",
+        Desc = "Enter player name (partial or full)",
         Value = "",
-        InputIcon = "play",
         Type = "Input",
-        Placeholder = "e.g. fly",
-        Callback = function(input)
-            local prefix = (NAStuff and NAStuff.prefixCheck) or ";"
-            pcall(function()
-                NAmanage.ExecuteBindings("OnChatted", game:GetService("Players").LocalPlayer, prefix .. input)
-            end)
-            WindUI:Notify({
-                Title = "Command Sent",
-                Content = prefix .. input,
-                Duration = 2,
-            })
+        Placeholder = "Username...",
+        Callback = function(input) targetPlayer = input end
+    })
+
+    TargetsTab:Button({
+        Title = "Goto Target",
+        Desc = "Teleports you to the target player",
+        Callback = function() if targetPlayer ~= "" then exec("goto " .. targetPlayer) end end
+    })
+
+    TargetsTab:Button({
+        Title = "Bring Target",
+        Desc = "Teleports the target player to you",
+        Callback = function() if targetPlayer ~= "" then exec("bring " .. targetPlayer) end end
+    })
+
+    TargetsTab:Button({
+        Title = "Fling Target",
+        Desc = "Flings the target player (Requires collisions)",
+        Callback = function() if targetPlayer ~= "" then exec("fling " .. targetPlayer) end end
+    })
+    
+    TargetsTab:Button({
+        Title = "Kill Target",
+        Desc = "Kills the target player",
+        Callback = function() if targetPlayer ~= "" then exec("kill " .. targetPlayer) end end
+    })
+
+    -- [ VISUALS TAB ] --
+    local VisualsTab = Window:Tab({ Title = "Visuals", Icon = "eye" })
+
+    VisualsTab:Toggle({
+        Title = "ESP",
+        Desc = "See players through walls",
+        Value = false,
+        Callback = function(state)
+            if state then exec("esp") else exec("unesp") end
         end
     })
 
-    local CmdsTab = Window:Tab({
-        Title = "Commands",
-        Icon = "list",
+    VisualsTab:Toggle({
+        Title = "Fullbright",
+        Desc = "Max out lighting in the game",
+        Value = false,
+        Callback = function(state)
+            if state then exec("fullbright") else exec("unfullbright") end
+        end
     })
-
-    local commandsLoaded = false
-    CmdsTab:Button({
-        Title = "Load Command Buttons",
-        Desc = "Generates a button for every command (may cause a small lag spike)",
-        Callback = function()
-            if commandsLoaded then return end
-            commandsLoaded = true
-            local entries = (NAStuff and NAStuff.AutofillEntries) or {}
-            for _, entry in ipairs(entries) do
-                if type(entry) == "table" and entry.name then
-                    CmdsTab:Button({
-                        Title = entry.name,
-                        Desc = entry.desc or "No description",
-                        Callback = function()
-                            local prefix = (NAStuff and NAStuff.prefixCheck) or ";"
-                            pcall(function()
-                                NAmanage.ExecuteBindings("OnChatted", game:GetService("Players").LocalPlayer, prefix .. entry.name)
-                            end)
-                        end
-                    })
-                end
-            end
-            WindUI:Notify({
-                Title = "Success",
-                Content = "Loaded " .. tostring(#entries) .. " commands.",
-                Duration = 3,
-            })
+    
+    VisualsTab:Toggle({
+        Title = "X-Ray",
+        Desc = "Make map transparent",
+        Value = false,
+        Callback = function(state)
+            if state then exec("xray") else exec("unxray") end
         end
     })
 
-    local SettingsTab = Window:Tab({
-        Title = "Settings",
-        Icon = "settings",
+    -- [ MISC TAB ] --
+    local MiscTab = Window:Tab({ Title = "Misc", Icon = "menu" })
+    
+    MiscTab:Button({
+        Title = "Rejoin Server",
+        Desc = "Rejoins the current server",
+        Callback = function() exec("rejoin") end
     })
+    
+    MiscTab:Button({
+        Title = "Server Hop",
+        Desc = "Joins a different server",
+        Callback = function() exec("serverhop") end
+    })
+    
+    MiscTab:Button({
+        Title = "Btools",
+        Desc = "Gives you building tools",
+        Callback = function() exec("btools") end
+    })
+
+    local customCmd = ""
+    MiscTab:Input({
+        Title = "Run Custom Command",
+        Desc = "Execute any other command",
+        Value = "",
+        Type = "Input",
+        Placeholder = "Command here...",
+        Callback = function(input) customCmd = input end
+    })
+    MiscTab:Button({
+        Title = "Execute Custom",
+        Callback = function() if customCmd ~= "" then exec(customCmd) end end
+    })
+
+    -- [ SETTINGS TAB ] --
+    local SettingsTab = Window:Tab({ Title = "Settings", Icon = "settings" })
 
     SettingsTab:Toggle({
         Title = "Show Original GUI",
