@@ -130226,7 +130226,12 @@ end)
 
 -- © 2026 Nameless Admin. All rights reserved. Do not copy, paste, redistribute, or claim as your own.
 task.spawn(function()
-    task.wait(3)
+    -- Wait until Nameless Admin finishes loading its commands
+    while not (NAStuff and NAStuff.AutofillEntries and #NAStuff.AutofillEntries > 0) do
+        task.wait(0.5)
+    end
+    task.wait(1)
+
     local allowOriginalGUI = false
     pcall(function()
         if NAStuff and NAStuff.NASCREENGUI then
@@ -130243,9 +130248,9 @@ task.spawn(function()
     WindUI:SetNotificationLower(true)
 
     local Window = WindUI:CreateWindow({
-        Title = "Nameless Admin Panel",
+        Title = "Nameless Admin (WindUI Ultimate)",
         Icon = "shield",
-        Author = "WindUI Mod",
+        Author = "Admin Panel",
         Theme = "Dark",
         NewElements = false,
         IconsThemed = true,
@@ -130254,14 +130259,11 @@ task.spawn(function()
     })
 
     Window:EditOpenButton({
-        Title = "Open Panel",
+        Title = "Open Admin",
         Icon = "shield",
         CornerRadius = UDim.new(0,16),
         StrokeThickness = 2,
-        Color = ColorSequence.new(
-            Color3.fromHex("3deb51"),  
-            Color3.fromHex("00a613")
-        ),
+        Color = ColorSequence.new(Color3.fromHex("3deb51"), Color3.fromHex("00a613")),
         OnlyMobile = false,
         Enabled = true,
         Draggable = true,
@@ -130274,189 +130276,88 @@ task.spawn(function()
         end)
     end
 
-    -- [ PLAYER TAB ] --
-    local PlayerTab = Window:Tab({ Title = "Player", Icon = "user" })
-    
-    PlayerTab:Button({
-        Title = "Heal",
-        Desc = "Restores your health to maximum",
-        Callback = function() exec("heal") end
-    })
+    -- ==== 1. CORE MENU (Sliders & Toggles for popular commands) ====
+    local PlayerTab = Window:Tab({ Title = "Player Core", Icon = "user" })
+    PlayerTab:Button({ Title = "Heal", Desc = "Restores health", Callback = function() exec("heal") end })
+    PlayerTab:Button({ Title = "God Mode", Desc = "Invincibility", Callback = function() exec("god") end })
+    PlayerTab:Button({ Title = "Ungod", Desc = "Removes invincibility", Callback = function() exec("ungod") end })
+    PlayerTab:Slider({ Title = "WalkSpeed", Desc = "Adjust WalkSpeed", Step = 1, Value = {Min=16, Max=500, Default=16}, Callback = function(v) exec("ws "..v) end })
+    PlayerTab:Slider({ Title = "JumpPower", Desc = "Adjust JumpPower", Step = 1, Value = {Min=50, Max=500, Default=50}, Callback = function(v) exec("jp "..v) end })
 
-    PlayerTab:Button({
-        Title = "God Mode",
-        Desc = "Makes your character invincible",
-        Callback = function() exec("god") end
-    })
-    
-    PlayerTab:Button({
-        Title = "Ungod Mode",
-        Desc = "Removes invincibility",
-        Callback = function() exec("ungod") end
-    })
+    local MoveTab = Window:Tab({ Title = "Movement Core", Icon = "move" })
+    MoveTab:Toggle({ Title = "Fly", Desc = "Toggle Flight", Value = false, Callback = function(s) exec(s and "fly" or "unfly") end })
+    MoveTab:Slider({ Title = "Fly Speed", Desc = "Adjust Flight Speed", Step = 1, Value = {Min=1, Max=20, Default=1}, Callback = function(v) exec("flyspeed "..v) end })
+    MoveTab:Toggle({ Title = "Noclip", Desc = "Walk through walls", Value = false, Callback = function(s) exec(s and "noclip" or "clip") end })
 
-    PlayerTab:Slider({
-        Title = "WalkSpeed",
-        Desc = "Adjust your character's walk speed",
-        Step = 1,
-        Value = { Min = 16, Max = 500, Default = 16 },
-        Callback = function(val) exec("ws " .. tostring(val)) end
-    })
+    -- ==== 2. DYNAMIC COMMAND GENERATION FOR ALL COMMANDS ====
+    local function needsArgs(desc)
+        return string.find(desc, "<") or string.find(desc, "%[")
+    end
 
-    PlayerTab:Slider({
-        Title = "JumpPower",
-        Desc = "Adjust your character's jump power",
-        Step = 1,
-        Value = { Min = 50, Max = 500, Default = 50 },
-        Callback = function(val) exec("jp " .. tostring(val)) end
-    })
+    local groups = {
+        ["A-C"] = {}, ["D-F"] = {}, ["G-H"] = {}, ["I-L"] = {},
+        ["M-P"] = {}, ["Q-S"] = {}, ["T-V"] = {}, ["W-Z"] = {}, ["Misc"] = {}
+    }
 
-    -- [ MOVEMENT TAB ] --
-    local MovementTab = Window:Tab({ Title = "Movement", Icon = "move" })
+    local function getGroup(char)
+        char = string.upper(char)
+        if char >= "A" and char <= "C" then return "A-C" end
+        if char >= "D" and char <= "F" then return "D-F" end
+        if char >= "G" and char <= "H" then return "G-H" end
+        if char >= "I" and char <= "L" then return "I-L" end
+        if char >= "M" and char <= "P" then return "M-P" end
+        if char >= "Q" and char <= "S" then return "Q-S" end
+        if char >= "T" and char <= "V" then return "T-V" end
+        if char >= "W" and char <= "Z" then return "W-Z" end
+        return "Misc"
+    end
 
-    MovementTab:Toggle({
-        Title = "Fly",
-        Desc = "Toggle flight mode",
-        Icon = "plane",
-        Value = false,
-        Callback = function(state)
-            if state then exec("fly") else exec("unfly") end
+    local entries = NAStuff.AutofillEntries
+    for _, entry in ipairs(entries) do
+        if type(entry) == "table" and entry.name then
+            local firstChar = string.sub(entry.name, 1, 1)
+            local g = getGroup(firstChar)
+            table.insert(groups[g], entry)
         end
-    })
+    end
 
-    MovementTab:Slider({
-        Title = "Fly Speed",
-        Desc = "Adjust flight speed",
-        Step = 1,
-        Value = { Min = 1, Max = 20, Default = 1 },
-        Callback = function(val) exec("flyspeed " .. tostring(val)) end
-    })
-
-    MovementTab:Toggle({
-        Title = "Noclip",
-        Desc = "Walk through walls",
-        Icon = "ghost",
-        Value = false,
-        Callback = function(state)
-            if state then exec("noclip") else exec("clip") end
+    local tabOrder = {"A-C", "D-F", "G-H", "I-L", "M-P", "Q-S", "T-V", "W-Z", "Misc"}
+    for _, groupName in ipairs(tabOrder) do
+        local cmds = groups[groupName]
+        if #cmds > 0 then
+            local tab = Window:Tab({ Title = "All " .. groupName, Icon = "folder" })
+            for _, cmd in ipairs(cmds) do
+                local desc = cmd.desc or "No description"
+                if needsArgs(desc) then
+                    tab:Input({
+                        Title = cmd.name,
+                        Desc = desc,
+                        Value = "",
+                        Placeholder = "Enter argument...",
+                        Callback = function(val)
+                            if val and val ~= "" then
+                                exec(cmd.name .. " " .. val)
+                            else
+                                exec(cmd.name)
+                            end
+                        end
+                    })
+                else
+                    tab:Button({
+                        Title = cmd.name,
+                        Desc = desc,
+                        Callback = function() exec(cmd.name) end
+                    })
+                end
+            end
         end
-    })
-    
-    MovementTab:Button({
-        Title = "Infinite Jump",
-        Desc = "Jump in mid-air",
-        Callback = function() exec("infjump") end
-    })
+    end
 
-    -- [ TARGETS TAB ] --
-    local TargetsTab = Window:Tab({ Title = "Targets", Icon = "crosshair" })
-
-    local targetPlayer = ""
-    TargetsTab:Input({
-        Title = "Target Player",
-        Desc = "Enter player name (partial or full)",
-        Value = "",
-        Type = "Input",
-        Placeholder = "Username...",
-        Callback = function(input) targetPlayer = input end
-    })
-
-    TargetsTab:Button({
-        Title = "Goto Target",
-        Desc = "Teleports you to the target player",
-        Callback = function() if targetPlayer ~= "" then exec("goto " .. targetPlayer) end end
-    })
-
-    TargetsTab:Button({
-        Title = "Bring Target",
-        Desc = "Teleports the target player to you",
-        Callback = function() if targetPlayer ~= "" then exec("bring " .. targetPlayer) end end
-    })
-
-    TargetsTab:Button({
-        Title = "Fling Target",
-        Desc = "Flings the target player (Requires collisions)",
-        Callback = function() if targetPlayer ~= "" then exec("fling " .. targetPlayer) end end
-    })
-    
-    TargetsTab:Button({
-        Title = "Kill Target",
-        Desc = "Kills the target player",
-        Callback = function() if targetPlayer ~= "" then exec("kill " .. targetPlayer) end end
-    })
-
-    -- [ VISUALS TAB ] --
-    local VisualsTab = Window:Tab({ Title = "Visuals", Icon = "eye" })
-
-    VisualsTab:Toggle({
-        Title = "ESP",
-        Desc = "See players through walls",
-        Value = false,
-        Callback = function(state)
-            if state then exec("esp") else exec("unesp") end
-        end
-    })
-
-    VisualsTab:Toggle({
-        Title = "Fullbright",
-        Desc = "Max out lighting in the game",
-        Value = false,
-        Callback = function(state)
-            if state then exec("fullbright") else exec("unfullbright") end
-        end
-    })
-    
-    VisualsTab:Toggle({
-        Title = "X-Ray",
-        Desc = "Make map transparent",
-        Value = false,
-        Callback = function(state)
-            if state then exec("xray") else exec("unxray") end
-        end
-    })
-
-    -- [ MISC TAB ] --
-    local MiscTab = Window:Tab({ Title = "Misc", Icon = "menu" })
-    
-    MiscTab:Button({
-        Title = "Rejoin Server",
-        Desc = "Rejoins the current server",
-        Callback = function() exec("rejoin") end
-    })
-    
-    MiscTab:Button({
-        Title = "Server Hop",
-        Desc = "Joins a different server",
-        Callback = function() exec("serverhop") end
-    })
-    
-    MiscTab:Button({
-        Title = "Btools",
-        Desc = "Gives you building tools",
-        Callback = function() exec("btools") end
-    })
-
-    local customCmd = ""
-    MiscTab:Input({
-        Title = "Run Custom Command",
-        Desc = "Execute any other command",
-        Value = "",
-        Type = "Input",
-        Placeholder = "Command here...",
-        Callback = function(input) customCmd = input end
-    })
-    MiscTab:Button({
-        Title = "Execute Custom",
-        Callback = function() if customCmd ~= "" then exec(customCmd) end end
-    })
-
-    -- [ SETTINGS TAB ] --
+    -- ==== 3. SETTINGS ====
     local SettingsTab = Window:Tab({ Title = "Settings", Icon = "settings" })
-
     SettingsTab:Toggle({
         Title = "Show Original GUI",
         Desc = "Show/Hide original Nameless Admin GUI",
-        Icon = "eye",
         Value = false,
         Callback = function(state)
             allowOriginalGUI = state
