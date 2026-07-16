@@ -1,3 +1,5 @@
+task.wait(0.3)
+
 if getgenv().UniversalScriptLoaded then
 	return
 end
