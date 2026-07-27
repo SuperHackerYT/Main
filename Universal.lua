@@ -1,5 +1,3 @@
-task.wait(0.3)
-
 if getgenv().UniversalScriptLoaded then
 	return
 end
@@ -363,7 +361,7 @@ local PlayerDropdowns = {}
 local SelectedPlayers = {}
 local selectedTpPlayer = ""
 
-local WindUI = loadstring(game:HttpGet("https://article-hub-studio.github.io/WindUI-Skibidi/loader.lua"))()
+local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
 WindUI:SetNotificationLower(true)
 
 local Window = WindUI:CreateWindow({
