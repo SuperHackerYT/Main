@@ -3,9 +3,7 @@ if getgenv().UniversalScriptLoaded then
 end
 pcall(function() getgenv().UniversalScriptLoaded = true end)
 
-if not game:IsLoaded() then
-	game.Loaded:Wait()
-end
+if not game:IsLoaded() then game.Loaded:Wait() end
 
 local Services = setmetatable({}, {
 	__index = function(self, name)
@@ -47,7 +45,6 @@ local CoreGui = Services.CoreGui
 local GuiService = Services.GuiService
 local MarketplaceService = Services.MarketplaceService
 local PathService = Services.PathfindingService
-
 local cloneref = cloneref or function(...) return ... end
 local hookfunction = hookfunction or function() end
 local hookmetamethod = hookmetamethod or function() end
@@ -362,24 +359,37 @@ local SelectedPlayers = {}
 local selectedTpPlayer = ""
 
 local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
-WindUI:SetNotificationLower(true)
+WindUI:SetParent(gethui())
 
 local Window = WindUI:CreateWindow({
 	Title = "Universal Script",
-	Icon = "zap",
+	Icon = "atom",
 	Author = "Elvis Fofo",
 	Theme = "Dark",
-	NewElements = false,
+	NewElements = true,
 	IconsThemed = true,
 	Transparent = true,
-	Acrylic = false,
+	HideSearchBar = false,
+	ShadowTransparency = 0.75,
+	AutoScale = true,
+	Resizable = true,
+	SideBarWidth = 190,
+	ScrollBarEnabled = true,
+	ToggleKey = Enum.KeyCode.F,
+	User = {
+    Enabled   = true,
+    Anonymous = false,
+    Callback  = function() end },
+    Topbar = {
+    Height = 50,
+    ButtonsType = "Default" },
 })
 
 Window:Tag({
-	Title = "v1.0",
+	Title = "v1.1",
 	Icon = "github",
 	Color = Color3.fromHex("#5eccff"),
-	Radius = 7,
+	Radius = 10,
 })
 
 Window:EditOpenButton({
@@ -387,13 +397,28 @@ Window:EditOpenButton({
 	Icon = "zap",
 	CornerRadius = UDim.new(0, 16),
 	StrokeThickness = 2,
-	Color = ColorSequence.new(
-		Color3.fromHex("3deb51"),
-		Color3.fromHex("00a613")
-	),
+	Color = ColorSequence.new(Color3.fromHex("3deb51"), Color3.fromHex("00a613")),
 	OnlyMobile = false,
 	Enabled = true,
 	Draggable = true,
+})
+
+Window:Dialog({
+    Title   = "Universal Script",
+    Content = "Script entirely made by Elvis, 100-200 features total.",
+    Width   = 320,
+    Buttons = {
+        {
+            Title    = "OK",
+            Variant  = "Secondary",
+            Callback = function() end,
+        },
+        {
+            Title    = "Potato",
+            Variant  = "Primary",
+            Callback = function() end,
+        },
+    },
 })
 
 local Tabs = {}
@@ -405,6 +430,7 @@ Tabs.Server = Window:Tab({ Title = "Server", Icon = "globe" })
 Tabs.Utilities = Window:Tab({ Title = "Utilities", Icon = "wrench" })
 Tabs.Fun = Window:Tab({ Title = "Fun", Icon = "smile" })
 Tabs.Misc = Window:Tab({ Title = "Miscellaneous", Icon = "columns-2" })
+Tabs.Theme = Window:Tab({ Title = "Settings", Icon = "settings" })
 
 local function refreshPlayerDropdowns()
 	local names = getPlayerNames()
@@ -866,13 +892,15 @@ Tabs.Movement:Input({
 		if hookmetamethod then
 			local char = LocalPlayer.Character
 			local stored = tonumber(v) or 16
-			local idx; idx = hookmetamethod(game, "__index", newcclosure(function(self, key)
+			local idx
+			idx = hookmetamethod(game, "__index", newcclosure(function(self, key)
 				if not checkcaller() and typeof(self) == "Instance" and self:IsA("Humanoid") and (key == "WalkSpeed" or key == "walkSpeed") and self:IsDescendantOf(char) then
 					return stored
 				end
 				return idx(self, key)
 			end))
-			local nidx; nidx = hookmetamethod(game, "__newindex", newcclosure(function(self, key, value)
+			local nidx
+			nidx = hookmetamethod(game, "__newindex", newcclosure(function(self, key, value)
 				if not checkcaller() and typeof(self) == "Instance" and self:IsA("Humanoid") and (key == "WalkSpeed" or key == "walkSpeed") and self:IsDescendantOf(char) then
 					stored = tonumber(value)
 				end
@@ -893,13 +921,15 @@ Tabs.Movement:Input({
 		if hookmetamethod then
 			local char = LocalPlayer.Character
 			local stored = tonumber(v) or 50
-			local idx; idx = hookmetamethod(game, "__index", newcclosure(function(self, key)
+			local idx
+			idx = hookmetamethod(game, "__index", newcclosure(function(self, key)
 				if not checkcaller() and typeof(self) == "Instance" and self:IsA("Humanoid") and (key == "JumpPower" or key == "jumpPower") and self:IsDescendantOf(char) then
 					return stored
 				end
 				return idx(self, key)
 			end))
-			local nidx; nidx = hookmetamethod(game, "__newindex", newcclosure(function(self, key, value)
+			local nidx
+			nidx = hookmetamethod(game, "__newindex", newcclosure(function(self, key, value)
 				if not checkcaller() and typeof(self) == "Instance" and self:IsA("Humanoid") and (key == "JumpPower" or key == "jumpPower") and self:IsDescendantOf(char) then
 					stored = tonumber(value)
 				end
@@ -1231,93 +1261,93 @@ local Connections = {}
 local isSetup = false
 
 local function SetupCharacter()
-    Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-    Humanoid = Character:WaitForChild("Humanoid")
-    HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
-    VisibleParts = {}
+	Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+	Humanoid = Character:WaitForChild("Humanoid")
+	HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
+	VisibleParts = {}
 
-    for _, descendant in pairs(Character:GetDescendants()) do
-        if descendant:IsA("BasePart") and descendant.Transparency == 0 then
-            table.insert(VisibleParts, descendant)
-        end
-    end
+	for _, descendant in pairs(Character:GetDescendants()) do
+		if descendant:IsA("BasePart") and descendant.Transparency == 0 then
+			table.insert(VisibleParts, descendant)
+		end
+	end
 end
 
 local function SetInvisible(state)
-    InvisibleEnabled = state
-    local transparency = state and 0.5 or 0
-    for _, part in pairs(VisibleParts) do
-        pcall(function()
-            part.Transparency = transparency
-        end)
-    end
+	InvisibleEnabled = state
+	local transparency = state and 0.5 or 0
+	for _, part in pairs(VisibleParts) do
+		pcall(function()
+			part.Transparency = transparency
+		end)
+	end
 end
 
 local function StartInvisibilityLoop()
-    if Connections.Heartbeat then
-        Connections.Heartbeat:Disconnect()
-        Connections.Heartbeat = nil
-    end
-    
-    Connections.Heartbeat = game:GetService("RunService").Heartbeat:Connect(function()
-        if InvisibleEnabled and Character and HumanoidRootPart and Humanoid then
-            local OriginalCFrame = HumanoidRootPart.CFrame
-            local OriginalCameraOffset = Humanoid.CameraOffset
+	if Connections.Heartbeat then
+		Connections.Heartbeat:Disconnect()
+		Connections.Heartbeat = nil
+	end
 
-            local DownCFrame = OriginalCFrame * CFrame.new(0, -200000, 0)
-            HumanoidRootPart.CFrame = DownCFrame
-            Humanoid.CameraOffset = DownCFrame:ToObjectSpace(CFrame.new(OriginalCFrame.Position)).Position
+	Connections.Heartbeat = game:GetService("RunService").Heartbeat:Connect(function()
+		if InvisibleEnabled and Character and HumanoidRootPart and Humanoid then
+			local OriginalCFrame = HumanoidRootPart.CFrame
+			local OriginalCameraOffset = Humanoid.CameraOffset
 
-            game:GetService("RunService").RenderStepped:Wait()
+			local DownCFrame = OriginalCFrame * CFrame.new(0, -200000, 0)
+			HumanoidRootPart.CFrame = DownCFrame
+			Humanoid.CameraOffset = DownCFrame:ToObjectSpace(CFrame.new(OriginalCFrame.Position)).Position
 
-            HumanoidRootPart.CFrame = OriginalCFrame
-            Humanoid.CameraOffset = OriginalCameraOffset
-        end
-    end)
+			game:GetService("RunService").RenderStepped:Wait()
+
+			HumanoidRootPart.CFrame = OriginalCFrame
+			Humanoid.CameraOffset = OriginalCameraOffset
+		end
+	end)
 end
 
 local function Initialize()
-    if isSetup then return end
-    isSetup = true
-    
-    SetupCharacter()
-    
-    Connections.CharacterAdded = LocalPlayer.CharacterAdded:Connect(function()
-        InvisibleEnabled = false
-        SetupCharacter()
-        if Connections.Heartbeat then
-            Connections.Heartbeat:Disconnect()
-            Connections.Heartbeat = nil
-        end
-    end)
-    
-    StartInvisibilityLoop()
+	if isSetup then return end
+	isSetup = true
+
+	SetupCharacter()
+
+	Connections.CharacterAdded = LocalPlayer.CharacterAdded:Connect(function()
+		InvisibleEnabled = false
+		SetupCharacter()
+		if Connections.Heartbeat then
+			Connections.Heartbeat:Disconnect()
+			Connections.Heartbeat = nil
+		end
+	end)
+
+	StartInvisibilityLoop()
 end
 
 Initialize()
 
 Tabs.Player:Toggle({
-    Title = "Invisible",
-    Desc = "Become invisible",
-    Value = false,
-    Callback = function(state)
-        if not isSetup then
-            Initialize()
-        end
-        
-        if not Character or not HumanoidRootPart then
-            SetupCharacter()
-        end
-        
-        SetInvisible(state)
-        
-        if state and not Connections.Heartbeat then
-            StartInvisibilityLoop()
-        elseif not state and Connections.Heartbeat then
-            Connections.Heartbeat:Disconnect()
-            Connections.Heartbeat = nil
-        end
-    end
+	Title = "Invisible",
+	Desc = "Become invisible",
+	Value = false,
+	Callback = function(state)
+		if not isSetup then
+			Initialize()
+		end
+
+		if not Character or not HumanoidRootPart then
+			SetupCharacter()
+		end
+
+		SetInvisible(state)
+
+		if state and not Connections.Heartbeat then
+			StartInvisibilityLoop()
+		elseif not state and Connections.Heartbeat then
+			Connections.Heartbeat:Disconnect()
+			Connections.Heartbeat = nil
+		end
+	end
 })
 
 Tabs.Player:Toggle({
@@ -1984,270 +2014,270 @@ local lp = Players.LocalPlayer
 local COREGUI = game:GetService("CoreGui") or lp:FindFirstChildWhichIsA("PlayerGui")
 
 local function getRoot(character)
-    return character and character:FindFirstChild("HumanoidRootPart")
+	return character and character:FindFirstChild("HumanoidRootPart")
 end
 
 local function round(num, decimal)
-    return math.floor(num * (10^decimal) + 0.5) / (10^decimal)
+	return math.floor(num * (10 ^ decimal) + 0.5) / (10 ^ decimal)
 end
 
 function ESP(plr, logic)
-    task.spawn(function()
-        if plr.Name == lp.Name or not plr.Character then return end        
-        local espName = plr.Name.."_ESP"
-        local oldESP = COREGUI:FindFirstChild(espName)
-        if oldESP then oldESP:Destroy() end
-        local character = plr.Character
-        if not character or not getRoot(character) or not character:FindFirstChildOfClass("Humanoid") then
-            repeat task.wait(0.5) until plr.Character and getRoot(plr.Character) and plr.Character:FindFirstChildOfClass("Humanoid")
-            character = plr.Character
-        end        
-        if not character then return end        
-        local ESPholder = Instance.new("Folder")
-        ESPholder.Name = espName
-        ESPholder.Parent = COREGUI        
-        local adornments = {}
-        for _, n in ipairs(character:GetChildren()) do
-            if n:IsA("BasePart") then
-                local a = Instance.new("BoxHandleAdornment")
-                a.Name = plr.Name
-                a.Parent = ESPholder
-                a.Adornee = n
-                a.AlwaysOnTop = true
-                a.ZIndex = 10
-                a.Size = n.Size
-                a.Transparency = espTransparency                
-                if logic then
-                    a.Color = BrickColor.new(plr.TeamColor == lp.TeamColor and "Bright green" or "Bright red")
-                else
-                    a.Color = plr.TeamColor
-                end
-                adornments[n] = a
-            end
-        end
-        
-        local bg = nil
-        local tl = nil
-        if character:FindFirstChild("Head") then
-            bg = Instance.new("BillboardGui")
-            tl = Instance.new("TextLabel")
-            bg.Adornee = character.Head
-            bg.Name = plr.Name
-            bg.Parent = ESPholder
-            bg.Size = UDim2.new(0,100,0,150)
-            bg.StudsOffset = Vector3.new(0,1,0)
-            bg.AlwaysOnTop = true
-            
-            tl.Parent = bg
-            tl.BackgroundTransparency = 1
-            tl.Position = UDim2.new(0,0,0,-50)
-            tl.Size = UDim2.new(0,100,0,100)
-            tl.Font = Enum.Font.SourceSansSemibold
-            tl.TextSize = 20
-            tl.TextColor3 = Color3.new(1,1,1)
-            tl.TextStrokeTransparency = 0
-            tl.TextYAlignment = Enum.TextYAlignment.Bottom
-            tl.ZIndex = 10
-            tl.Text = "Name: "..plr.Name
-        end
-        
-        local connections = {}
-        local isActive = true
-        
-        connections.CharacterAdded = plr.CharacterAdded:Connect(function(newChar)
-            if ESPenabled and isActive then
-                for _, conn in pairs(connections) do
-                    if conn and conn.Disconnect then conn:Disconnect() end
-                end
-                ESPholder:Destroy()
-                task.wait(0.1)
-                ESP(plr, logic)
-            else
-                for _, conn in pairs(connections) do
-                    if conn and conn.Disconnect then conn:Disconnect() end
-                end
-            end
-        end)
-        
-        connections.TeamChange = plr:GetPropertyChangedSignal("TeamColor"):Connect(function()
-            if ESPenabled and isActive and ESPholder.Parent then
-                if logic then
-                    local teamColor = plr.TeamColor == lp.TeamColor and "Bright green" or "Bright red"
-                    for _, adrn in pairs(ESPholder:GetChildren()) do
-                        if adrn:IsA("BoxHandleAdornment") then
-                            adrn.Color = BrickColor.new(teamColor)
-                        end
-                    end
-                else
-                    for _, adrn in pairs(ESPholder:GetChildren()) do
-                        if adrn:IsA("BoxHandleAdornment") then
-                            adrn.Color = plr.TeamColor
-                        end
-                    end
-                end
-            end
-        end)        
-        connections.Removed = ESPholder.AncestryChanged:Connect(function()
-            if not ESPholder.Parent then
-                isActive = false
-                for _, conn in pairs(connections) do
-                    if conn and conn.Disconnect then conn:Disconnect() end
-                end
-            end
-        end)
-        
-        local updateConnection
-        updateConnection = RunService.Heartbeat:Connect(function()
-            if not COREGUI:FindFirstChild(espName) or not isActive then
-                updateConnection:Disconnect()
-                return
-            end            
-            if plr.Character and getRoot(plr.Character) and plr.Character:FindFirstChildOfClass("Humanoid") and 
-               lp.Character and getRoot(lp.Character) and tl then                
-                local root1 = getRoot(lp.Character)
-                local root2 = getRoot(plr.Character)
-                if root1 and root2 then
-                    local pos = math.floor((root1.Position - root2.Position).Magnitude)
-                    local health = round(plr.Character:FindFirstChildOfClass("Humanoid").Health, 1)
-                    tl.Text = "Name: "..plr.Name.." | Health: "..health.." | Studs: "..pos
-                end
-            end
-        end)
-        connections.Update = updateConnection
-    end)
+	task.spawn(function()
+		if plr.Name == lp.Name or not plr.Character then return end
+		local espName = plr.Name .. "_ESP"
+		local oldESP = COREGUI:FindFirstChild(espName)
+		if oldESP then oldESP:Destroy() end
+		local character = plr.Character
+		if not character or not getRoot(character) or not character:FindFirstChildOfClass("Humanoid") then
+			repeat task.wait(0.5) until plr.Character and getRoot(plr.Character) and plr.Character:FindFirstChildOfClass("Humanoid")
+			character = plr.Character
+		end
+		if not character then return end
+		local ESPholder = Instance.new("Folder")
+		ESPholder.Name = espName
+		ESPholder.Parent = COREGUI
+		local adornments = {}
+		for _, n in ipairs(character:GetChildren()) do
+			if n:IsA("BasePart") then
+				local a = Instance.new("BoxHandleAdornment")
+				a.Name = plr.Name
+				a.Parent = ESPholder
+				a.Adornee = n
+				a.AlwaysOnTop = true
+				a.ZIndex = 10
+				a.Size = n.Size
+				a.Transparency = espTransparency
+				if logic then
+					a.Color = BrickColor.new(plr.TeamColor == lp.TeamColor and "Bright green" or "Bright red")
+				else
+					a.Color = plr.TeamColor
+				end
+				adornments[n] = a
+			end
+		end
+
+		local bg = nil
+		local tl = nil
+		if character:FindFirstChild("Head") then
+			bg = Instance.new("BillboardGui")
+			tl = Instance.new("TextLabel")
+			bg.Adornee = character.Head
+			bg.Name = plr.Name
+			bg.Parent = ESPholder
+			bg.Size = UDim2.new(0, 100, 0, 150)
+			bg.StudsOffset = Vector3.new(0, 1, 0)
+			bg.AlwaysOnTop = true
+
+			tl.Parent = bg
+			tl.BackgroundTransparency = 1
+			tl.Position = UDim2.new(0, 0, 0, -50)
+			tl.Size = UDim2.new(0, 100, 0, 100)
+			tl.Font = Enum.Font.SourceSansSemibold
+			tl.TextSize = 20
+			tl.TextColor3 = Color3.new(1, 1, 1)
+			tl.TextStrokeTransparency = 0
+			tl.TextYAlignment = Enum.TextYAlignment.Bottom
+			tl.ZIndex = 10
+			tl.Text = "Name: " .. plr.Name
+		end
+
+		local connections = {}
+		local isActive = true
+
+		connections.CharacterAdded = plr.CharacterAdded:Connect(function(newChar)
+			if ESPenabled and isActive then
+				for _, conn in pairs(connections) do
+					if conn and conn.Disconnect then conn:Disconnect() end
+				end
+				ESPholder:Destroy()
+				task.wait(0.1)
+				ESP(plr, logic)
+			else
+				for _, conn in pairs(connections) do
+					if conn and conn.Disconnect then conn:Disconnect() end
+				end
+			end
+		end)
+
+		connections.TeamChange = plr:GetPropertyChangedSignal("TeamColor"):Connect(function()
+			if ESPenabled and isActive and ESPholder.Parent then
+				if logic then
+					local teamColor = plr.TeamColor == lp.TeamColor and "Bright green" or "Bright red"
+					for _, adrn in pairs(ESPholder:GetChildren()) do
+						if adrn:IsA("BoxHandleAdornment") then
+							adrn.Color = BrickColor.new(teamColor)
+						end
+					end
+				else
+					for _, adrn in pairs(ESPholder:GetChildren()) do
+						if adrn:IsA("BoxHandleAdornment") then
+							adrn.Color = plr.TeamColor
+						end
+					end
+				end
+			end
+		end)
+		connections.Removed = ESPholder.AncestryChanged:Connect(function()
+			if not ESPholder.Parent then
+				isActive = false
+				for _, conn in pairs(connections) do
+					if conn and conn.Disconnect then conn:Disconnect() end
+				end
+			end
+		end)
+
+		local updateConnection
+		updateConnection = RunService.Heartbeat:Connect(function()
+			if not COREGUI:FindFirstChild(espName) or not isActive then
+				updateConnection:Disconnect()
+				return
+			end
+			if plr.Character and getRoot(plr.Character) and plr.Character:FindFirstChildOfClass("Humanoid") and
+			lp.Character and getRoot(lp.Character) and tl then
+				local root1 = getRoot(lp.Character)
+				local root2 = getRoot(plr.Character)
+				if root1 and root2 then
+					local pos = math.floor((root1.Position - root2.Position).Magnitude)
+					local health = round(plr.Character:FindFirstChildOfClass("Humanoid").Health, 1)
+					tl.Text = "Name: " .. plr.Name .. " | Health: " .. health .. " | Studs: " .. pos
+				end
+			end
+		end)
+		connections.Update = updateConnection
+	end)
 end
 
 function CHMS(plr)
-    task.spawn(function()
-        if plr.Name == lp.Name or not plr.Character then return end        
-        local chmsName = plr.Name.."_CHMS"        
-        local oldCHMS = COREGUI:FindFirstChild(chmsName)
-        if oldCHMS then oldCHMS:Destroy() end        
-        local character = plr.Character
-        if not character or not getRoot(character) or not character:FindFirstChildOfClass("Humanoid") then
-            repeat task.wait(0.5) until plr.Character and getRoot(plr.Character) and plr.Character:FindFirstChildOfClass("Humanoid")
-            character = plr.Character
-        end        
-        if not character then return end        
-        local ESPholder = Instance.new("Folder")
-        ESPholder.Name = chmsName
-        ESPholder.Parent = COREGUI        
-        local currentColor = plr.TeamColor        
-        for _, n in ipairs(character:GetChildren()) do
-            if n:IsA("BasePart") then
-                local a = Instance.new("BoxHandleAdornment")
-                a.Name = plr.Name
-                a.Parent = ESPholder
-                a.Adornee = n
-                a.AlwaysOnTop = true
-                a.ZIndex = 10
-                a.Size = n.Size
-                a.Transparency = espTransparency
-                a.Color = currentColor
-            end
-        end
-        
-        local connections = {}
-        local isActive = true
-        
-        connections.CharacterAdded = plr.CharacterAdded:Connect(function()
-            if CHMSenabled and isActive then
-                for _, conn in pairs(connections) do
-                    if conn and conn.Disconnect then conn:Disconnect() end
-                end
-                ESPholder:Destroy()
-                task.wait(0.1)
-                CHMS(plr)
-            else
-                for _, conn in pairs(connections) do
-                    if conn and conn.Disconnect then conn:Disconnect() end
-                end
-            end
-        end)
-        
-        connections.TeamChange = plr:GetPropertyChangedSignal("TeamColor"):Connect(function()
-            if CHMSenabled and isActive and ESPholder.Parent then
-                currentColor = plr.TeamColor
-                for _, adrn in pairs(ESPholder:GetChildren()) do
-                    if adrn:IsA("BoxHandleAdornment") then
-                        adrn.Color = currentColor
-                    end
-                end
-            end
-        end)        
-        connections.Removed = ESPholder.AncestryChanged:Connect(function()
-            if not ESPholder.Parent then
-                isActive = false
-                for _, conn in pairs(connections) do
-                    if conn and conn.Disconnect then conn:Disconnect() end
-                end
-            end
-        end)
-    end)
+	task.spawn(function()
+		if plr.Name == lp.Name or not plr.Character then return end
+		local chmsName = plr.Name .. "_CHMS"
+		local oldCHMS = COREGUI:FindFirstChild(chmsName)
+		if oldCHMS then oldCHMS:Destroy() end
+		local character = plr.Character
+		if not character or not getRoot(character) or not character:FindFirstChildOfClass("Humanoid") then
+			repeat task.wait(0.5) until plr.Character and getRoot(plr.Character) and plr.Character:FindFirstChildOfClass("Humanoid")
+			character = plr.Character
+		end
+		if not character then return end
+		local ESPholder = Instance.new("Folder")
+		ESPholder.Name = chmsName
+		ESPholder.Parent = COREGUI
+		local currentColor = plr.TeamColor
+		for _, n in ipairs(character:GetChildren()) do
+			if n:IsA("BasePart") then
+				local a = Instance.new("BoxHandleAdornment")
+				a.Name = plr.Name
+				a.Parent = ESPholder
+				a.Adornee = n
+				a.AlwaysOnTop = true
+				a.ZIndex = 10
+				a.Size = n.Size
+				a.Transparency = espTransparency
+				a.Color = currentColor
+			end
+		end
+
+		local connections = {}
+		local isActive = true
+
+		connections.CharacterAdded = plr.CharacterAdded:Connect(function()
+			if CHMSenabled and isActive then
+				for _, conn in pairs(connections) do
+					if conn and conn.Disconnect then conn:Disconnect() end
+				end
+				ESPholder:Destroy()
+				task.wait(0.1)
+				CHMS(plr)
+			else
+				for _, conn in pairs(connections) do
+					if conn and conn.Disconnect then conn:Disconnect() end
+				end
+			end
+		end)
+
+		connections.TeamChange = plr:GetPropertyChangedSignal("TeamColor"):Connect(function()
+			if CHMSenabled and isActive and ESPholder.Parent then
+				currentColor = plr.TeamColor
+				for _, adrn in pairs(ESPholder:GetChildren()) do
+					if adrn:IsA("BoxHandleAdornment") then
+						adrn.Color = currentColor
+					end
+				end
+			end
+		end)
+		connections.Removed = ESPholder.AncestryChanged:Connect(function()
+			if not ESPholder.Parent then
+				isActive = false
+				for _, conn in pairs(connections) do
+					if conn and conn.Disconnect then conn:Disconnect() end
+				end
+			end
+		end)
+	end)
 end
 
 Tabs.Visuals:Toggle({
-    Title="ESP", Desc="Show all players with name/health/distance. ",
-    Value=false,
-    Callback=function(state)
-        ESPenabled = state
-        if state then
-            for _, p in ipairs(Players:GetPlayers()) do ESP(p, false) end
-            notify("ESP","ESP Enabled")
-        else
-            for _, v in pairs(COREGUI:GetChildren()) do
-                if v.Name:find("_ESP") then v:Destroy() end
-            end
-            notify("ESP","ESP Disabled")
-        end
-    end
+	Title = "ESP", Desc = "Show all players with name/health/distance. ",
+	Value = false,
+	Callback = function(state)
+		ESPenabled = state
+		if state then
+			for _, p in ipairs(Players:GetPlayers()) do ESP(p, false) end
+			notify("ESP", "ESP Enabled")
+		else
+			for _, v in pairs(COREGUI:GetChildren()) do
+				if v.Name:find("_ESP") then v:Destroy() end
+			end
+			notify("ESP", "ESP Disabled")
+		end
+	end
 })
 
 Tabs.Visuals:Toggle({
-    Title="ESP Team", Desc="ESP with team colours — green=ally, red=enemy.",
-    Value=false,
-    Callback=function(state)
-        ESPenabled = state
-        if state then
-            for _, p in ipairs(Players:GetPlayers()) do ESP(p, true) end
-        else
-            for _, v in pairs(COREGUI:GetChildren()) do
-                if v.Name:find("_ESP") then v:Destroy() end
-            end
-        end
-    end
+	Title = "ESP Team", Desc = "ESP with team colours — green=ally, red=enemy.",
+	Value = false,
+	Callback = function(state)
+		ESPenabled = state
+		if state then
+			for _, p in ipairs(Players:GetPlayers()) do ESP(p, true) end
+		else
+			for _, v in pairs(COREGUI:GetChildren()) do
+				if v.Name:find("_ESP") then v:Destroy() end
+			end
+		end
+	end
 })
 
 Tabs.Visuals:Slider({
-    Title="ESP Transparency", Desc="Box transparency for ESP/Chams. Default=0",
-    Step=0.1, Value={Min=0,Max=1,Default=0},
-    Callback=function(v) 
-        espTransparency = v
-        for _, folder in pairs(COREGUI:GetChildren()) do
-            if folder.Name:find("_ESP") or folder.Name:find("_CHMS") then
-                for _, adrn in pairs(folder:GetChildren()) do
-                    if adrn:IsA("BoxHandleAdornment") then
-                        adrn.Transparency = v
-                    end
-                end
-            end
-        end
-    end
+	Title = "ESP Transparency", Desc = "Box transparency for ESP/Chams. Default=0",
+	Step = 0.1, Value = {Min = 0, Max = 1, Default = 0},
+	Callback = function(v)
+		espTransparency = v
+		for _, folder in pairs(COREGUI:GetChildren()) do
+			if folder.Name:find("_ESP") or folder.Name:find("_CHMS") then
+				for _, adrn in pairs(folder:GetChildren()) do
+					if adrn:IsA("BoxHandleAdornment") then
+						adrn.Transparency = v
+					end
+				end
+			end
+		end
+	end
 })
 
 Tabs.Visuals:Toggle({
-    Title="Chams", Desc="ESP without text overlay. ",
-    Value=false,
-    Callback=function(state)
-        CHMSenabled = state
-        if state then
-            for _, p in ipairs(Players:GetPlayers()) do CHMS(p) end
-        else
-            for _, v in pairs(COREGUI:GetChildren()) do
-                if v.Name:find("_CHMS") then v:Destroy() end
-            end
-        end
-    end
+	Title = "Chams", Desc = "ESP without text overlay. ",
+	Value = false,
+	Callback = function(state)
+		CHMSenabled = state
+		if state then
+			for _, p in ipairs(Players:GetPlayers()) do CHMS(p) end
+		else
+			for _, v in pairs(COREGUI:GetChildren()) do
+				if v.Name:find("_CHMS") then v:Destroy() end
+			end
+		end
+	end
 })
 
 Tabs.Visuals:Toggle({
@@ -2832,77 +2862,6 @@ Tabs.Teleports:Button({
 	end
 })
 
-Tabs.Teleports:Section({ Title = "Fling", Opened = true })
-
-Tabs.Teleports:Button({
-	Title = "Fling GUI",
-	Callback = function()
-		loadstring(game:HttpGet("https://paste.rs/jqxgD"))()
-	end
-})
-
-Tabs.Teleports:Toggle({
-	Title = "Walk Fling",
-	Desc = "Fling while walking",
-	Value = false,
-	Callback = function(state)
-		if state then
-			local char = LocalPlayer.Character
-			local hum = getHum(char)
-			if hum then
-				hum.Died:Connect(function()
-					if Connections.WalkFling then
-						Connections.WalkFling:Disconnect()
-						Connections.WalkFling = nil
-					end
-				end)
-			end
-			Connections.WalkFling = RunService.Heartbeat:Connect(function()
-				local c = LocalPlayer.Character
-				local r = getRoot(c)
-				if not r then return end
-				local vel = r.Velocity
-				r.Velocity = vel * 10000 + Vector3.new(0, 10000, 0)
-				RunService.RenderStepped:Wait()
-				if r and r.Parent then
-					r.Velocity = vel
-				end
-			end)
-		else
-			if Connections.WalkFling then
-				Connections.WalkFling:Disconnect()
-				Connections.WalkFling = nil
-			end
-		end
-	end
-})
-
-Tabs.Teleports:Toggle({
-	Title = "Anti Fling",
-	Desc = "Prevent being flung",
-	Value = false,
-	Callback = function(state)
-		if state then
-			Connections.AntiFling = RunService.Stepped:Connect(function()
-				for _, plr in ipairs(Players:GetPlayers()) do
-					if plr ~= LocalPlayer and plr.Character then
-						for _, v in ipairs(plr.Character:GetDescendants()) do
-							if v:IsA("BasePart") then
-								v.CanCollide = false
-							end
-						end
-					end
-				end
-			end)
-		else
-			if Connections.AntiFling then
-				Connections.AntiFling:Disconnect()
-				Connections.AntiFling = nil
-			end
-		end
-	end
-})
-
 Tabs.Server:Section({ Title = "Chat & Logs", Opened = true })
 
 local chatLogsEnabled = false
@@ -3139,13 +3098,13 @@ Tabs.Server:Button({
 	end
 })
 
-Tabs.Utilities:Section({ Title = "Exploit Tools", Opened = true })
+Tabs.Utilities:Section({ Title = "Tools", Opened = true })
 
 Tabs.Utilities:Button({
 	Title = "Dex Explorer",
 	Callback = function()
 		notify("Utilities", "Loading Dex...")
-		loadstring(game:HttpGet("https://raw.githubusercontent.com/peyton2465/Dex/master/out.lua"))()
+		loadstring(game:HttpGet("https://raw.githubusercontent.com/ltseverydayyou/uuuuuuu/refs/heads/main/DexPlusBackup.luau"))()
 	end
 })
 
@@ -3174,9 +3133,57 @@ Tabs.Utilities:Button({
 })
 
 Tabs.Utilities:Button({
+	Title = "Server Remote Spy",
+	Callback = function()
+		notify("Utilities", "Loading Server Spy ...")
+		loadstring(game:HttpGet("https://raw.githubusercontent.com/ltseverydayyou/uuuuuuu/refs/heads/main/Server%20Spy.lua"))()
+	end
+})
+
+Tabs.Utilities:Button({
 	Title = "Console",
 	Callback = function()
 		StarterGui:SetCore("DevConsoleVisible", true)
+	end
+})
+
+Tabs.Utilities:Button({
+	Title = "Image Scanner",
+	Callback = function()
+		notify("Utilities", "Loading Image Scanner ...")
+		loadstring(game:HttpGet("https://raw.githubusercontent.com/ltseverydayyou/uuuuuuu/refs/heads/main/ImageScanner.lua"))()
+	end
+})
+
+Tabs.Utilities:Button({
+	Title = "Get F3X Btools",
+	Callback = function()
+		notify("Utilities", "Loading F3X ...")
+		loadstring(game:HttpGet("https://raw.githubusercontent.com/ltseverydayyou/uuuuuuu/refs/heads/main/F3X.luau", true, "@F3X.luau"))()
+	end
+})
+
+Tabs.Utilities:Button({
+	Title = "Mini Map UI",
+	Callback = function()
+		notify("Utilities", "Loading MiniMap ...")
+		loadstring(game:HttpGet("https://raw.githubusercontent.com/ltseverydayyou/uuuuuuu/refs/heads/main/minimap.luau"))()
+	end
+})
+
+Tabs.Utilities:Button({
+	Title = "Shiftlock",
+	Callback = function()
+		notify("Utilities", "Loading Shiftlock ...")
+		loadstring(game:HttpGet("https://raw.githubusercontent.com/ltseverydayyou/uuuuuuu/refs/heads/main/shiftlock"))()
+	end
+})
+
+Tabs.Utilities:Button({
+	Title = "Part Grabber",
+	Callback = function()
+		notify("Utilities", "Loading Turtle ...")
+		loadstring(game:HttpGet("https://raw.githubusercontent.com/ltseverydayyou/Nameless-Admin/main/PartGrabber.lua"))()
 	end
 })
 
@@ -3697,6 +3704,75 @@ Tabs.Fun:Button({
 })
 
 Tabs.Fun:Button({
+	Title = "Fling GUI",
+	Callback = function()
+		loadstring(game:HttpGet("https://paste.rs/jqxgD"))()
+	end
+})
+
+Tabs.Fun:Toggle({
+	Title = "Walk Fling",
+	Desc = "Fling while walking",
+	Value = false,
+	Callback = function(state)
+		if state then
+			local char = LocalPlayer.Character
+			local hum = getHum(char)
+			if hum then
+				hum.Died:Connect(function()
+					if Connections.WalkFling then
+						Connections.WalkFling:Disconnect()
+						Connections.WalkFling = nil
+					end
+				end)
+			end
+			Connections.WalkFling = RunService.Heartbeat:Connect(function()
+				local c = LocalPlayer.Character
+				local r = getRoot(c)
+				if not r then return end
+				local vel = r.Velocity
+				r.Velocity = vel * 10000 + Vector3.new(0, 10000, 0)
+				RunService.RenderStepped:Wait()
+				if r and r.Parent then
+					r.Velocity = vel
+				end
+			end)
+		else
+			if Connections.WalkFling then
+				Connections.WalkFling:Disconnect()
+				Connections.WalkFling = nil
+			end
+		end
+	end
+})
+
+Tabs.Fun:Toggle({
+	Title = "Anti Fling",
+	Desc = "Prevent being flung",
+	Value = false,
+	Callback = function(state)
+		if state then
+			Connections.AntiFling = RunService.Stepped:Connect(function()
+				for _, plr in ipairs(Players:GetPlayers()) do
+					if plr ~= LocalPlayer and plr.Character then
+						for _, v in ipairs(plr.Character:GetDescendants()) do
+							if v:IsA("BasePart") then
+								v.CanCollide = false
+							end
+						end
+					end
+				end
+			end)
+		else
+			if Connections.AntiFling then
+				Connections.AntiFling:Disconnect()
+				Connections.AntiFling = nil
+			end
+		end
+	end
+})
+
+Tabs.Fun:Button({
 	Title = "Trip",
 	Callback = function()
 		local hum = getHum(LocalPlayer.Character)
@@ -3711,7 +3787,7 @@ Tabs.Fun:Button({
 Tabs.Fun:Button({
 	Title = "All Emotes Player",
 	Callback = function()
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/SuperHackerYT/Main/refs/heads/main/EmotePlayer.lua"))()
+		loadstring(game:HttpGet("https://raw.githubusercontent.com/SuperHackerYT/Main/refs/heads/main/EmotePlayer.lua"))()
 	end
 })
 
@@ -3854,10 +3930,11 @@ Tabs.Fun:Button({
 })
 
 Tabs.Fun:Button({
-	Title = "Jerk (If you die, it's been patched)",
+	Title = "Masturbate your dih",
+	Desc = "might not work, i think roblox patched it",
 	Callback = function()
-loadstring(game:HttpGet("https://pastefy.app/wa3v2Vgm/raw"))("Spider Script")
-loadstring(game:HttpGet("https://pastefy.app/YZoglOyJ/raw"))()
+		loadstring(game:HttpGet("https://pastefy.app/wa3v2Vgm/raw"))("Spider Script")
+		loadstring(game:HttpGet("https://pastefy.app/YZoglOyJ/raw"))()
 	end
 })
 
@@ -4213,11 +4290,11 @@ Tabs.Misc:Toggle({
 	Callback = function(state)
 		if state then
 			local badNames = {
-				"Head","UpperTorso","LowerTorso","RightUpperArm","LeftUpperArm",
-				"RightLowerArm","LeftLowerArm","RightHand","LeftHand",
-				"RightUpperLeg","LeftUpperLeg","RightLowerLeg","LeftLowerLeg",
-				"RightFoot","LeftFoot","Torso","Right Arm","Left Arm",
-				"Right Leg","Left Leg","HumanoidRootPart"
+				"Head", "UpperTorso", "LowerTorso", "RightUpperArm", "LeftUpperArm",
+				"RightLowerArm", "LeftLowerArm", "RightHand", "LeftHand",
+				"RightUpperLeg", "LeftUpperLeg", "RightLowerLeg", "LeftLowerLeg",
+				"RightFoot", "LeftFoot", "Torso", "Right Arm", "Left Arm",
+				"Right Leg", "Left Leg", "HumanoidRootPart"
 			}
 			local function freeze(v)
 				if (v:IsA("BasePart") or v:IsA("UnionOperation")) and not v.Anchored then
@@ -4490,6 +4567,34 @@ Tabs.Misc:Toggle({
 			Toggles.AutoKey = false
 		end
 	end
+})
+
+Tabs.Theme:Dropdown({
+    Title  = "Select Theme",
+    Values = (function()
+        local names = {}
+        for name in pairs(WindUI:GetThemes()) do
+            table.insert(names, name)
+        end
+        table.sort(names)
+        return names
+    end)(),
+    Value    = WindUI:GetCurrentTheme(),
+    Callback = function(selected)
+        WindUI:SetTheme(selected)
+    end,
+})
+
+Tabs.Theme:Button({
+	Title = "Destroy Window",
+	Callback = function()
+    Window:Destroy()
+	end
+})
+
+Tabs.Theme:Paragraph({
+	Title = "Toggle Key",
+	Desc = "Press F to toggle window",
 })
 
 notify("Universal Script", "Loaded successfully by Elvis Fofo")
