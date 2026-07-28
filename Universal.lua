@@ -371,7 +371,6 @@ local Window = WindUI:CreateWindow({
 	Transparent = true,
 	HideSearchBar = false,
 	ShadowTransparency = 0.75,
-	AutoScale = true,
 	Resizable = true,
 	SideBarWidth = 190,
 	ScrollBarEnabled = true,
@@ -4587,6 +4586,7 @@ Tabs.Theme:Dropdown({
 
 Tabs.Theme:Button({
 	Title = "Destroy Window",
+	Desc = "This will permanently close the script",
 	Callback = function()
     Window:Destroy()
 	end
